@@ -568,11 +568,11 @@ function mostrarConfirmacion(registro, envioPromesa){
     render();
   });
   if(envioPromesa){
-    envioPromesa.then(ok=>{
+    envioPromesa.then(resultado=>{
       const el = document.getElementById(estadoId);
       if(!el) return; // el empleado ya avanzó a otro registro
-      if(ok){ el.textContent = '✓ Guardado en el Excel de SIA ONLINE'; el.style.color = 'var(--green)'; }
-      else { el.textContent = 'No se pudo enviar al repositorio central. Quedó guardado en este dispositivo — expórtalo desde "Registros de hoy".'; el.style.color = 'var(--amber)'; }
+      if(resultado===true){ el.textContent = '✓ Guardado en el Excel de SIA ONLINE'; el.style.color = 'var(--green)'; }
+      else { el.textContent = 'No se pudo enviar al repositorio central (' + resultado + '). Quedó guardado en este dispositivo — expórtalo desde "Registros de hoy".'; el.style.color = 'var(--amber)'; }
     });
   }
 }
@@ -586,7 +586,8 @@ const EMAILJS_TEMPLATE_ID = 'qm8n2ym';
 if(window.emailjs) emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 
 function enviarSiHayWebhook(registro, fotos){
-  if(!window.emailjs || !EMAILJS_SERVICE_ID) return null;
+  if(!window.emailjs) return Promise.resolve('la librería de EmailJS no cargó en este navegador');
+  if(!EMAILJS_SERVICE_ID) return null;
   return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
     sede: registro.sede,
     nombre: registro.nombre,
@@ -599,7 +600,10 @@ function enviarSiHayWebhook(registro, fotos){
     novedades: registro.novedades || '',
     tieneFotoUniforme: registro.tieneFotoUniforme ? 'Si' : 'No',
     tieneFotoBotas: registro.tieneFotoBotas ? 'Si' : 'No'
-  }).then(()=> true).catch(()=> false);
+  }).then(()=> true).catch(err=>{
+    const detalle = (err && (err.text || err.message)) ? (err.status ? (err.status+': '+ (err.text||err.message)) : (err.text||err.message)) : JSON.stringify(err);
+    return detalle || 'error desconocido';
+  });
 }
 
 /* =========================================================

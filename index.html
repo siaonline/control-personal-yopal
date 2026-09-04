@@ -472,15 +472,33 @@ function cerrarCamara(){
 }
 document.getElementById('camClose').addEventListener('click', cerrarCamara);
 
-const FOTO_MAX_ANCHO = 480; // px — mantiene el Base64 liviano para que quepa en el correo de EmailJS
+// Compresión adaptativa: EmailJS (plan gratis) limita el TOTAL de variables del correo a 50 KB,
+// y aquí van dos fotos + el resto de campos — así que cada foto debe pesar poco.
+// Se prueba de más grande/nítida a más chica/comprimida hasta que el Base64 quepa en el límite.
+const FOTO_LIMITE_CARACTERES = 18000; // ~18 KB de Base64 por foto, dejando margen para las dos + el resto de campos
+const FOTO_ANCHOS = [480, 360, 240, 160];
+const FOTO_CALIDADES = [0.6, 0.45, 0.3, 0.2, 0.12];
+
+function capturarFotoComprimida(video, canvas){
+  const vw = video.videoWidth, vh = video.videoHeight;
+  let mejorIntento = null;
+  for(const anchoObjetivo of FOTO_ANCHOS){
+    const escala = Math.min(1, anchoObjetivo / vw);
+    const w = Math.round(vw * escala), h = Math.round(vh * escala);
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(video, 0, 0, w, h);
+    for(const calidad of FOTO_CALIDADES){
+      const data = canvas.toDataURL('image/jpeg', calidad);
+      mejorIntento = data; // siempre guarda el último (el más chico probado) por si nada cupo
+      if(data.length <= FOTO_LIMITE_CARACTERES) return data;
+    }
+  }
+  return mejorIntento; // ninguna combinación cupo del todo; se manda la más comprimida como último recurso
+}
+
 document.getElementById('camShutter').addEventListener('click', ()=>{
-  const vw = camVideo.videoWidth, vh = camVideo.videoHeight;
-  if(!vw || !vh) return;
-  const escala = Math.min(1, FOTO_MAX_ANCHO / vw);
-  const w = Math.round(vw * escala), h = Math.round(vh * escala);
-  camCanvas.width = w; camCanvas.height = h;
-  camCanvas.getContext('2d').drawImage(camVideo, 0, 0, w, h);
-  capturaPendiente = camCanvas.toDataURL('image/jpeg', 0.5);
+  if(!camVideo.videoWidth || !camVideo.videoHeight) return;
+  capturaPendiente = capturarFotoComprimida(camVideo, camCanvas);
   camVideo.classList.add('hidden');
   camShootBar.classList.add('hidden');
   camConfirmBar.classList.remove('hidden');

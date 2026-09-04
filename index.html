@@ -545,18 +545,18 @@ function onGuardar(){
     tieneFotoBotas: !!state.fotos.botas,
   };
   REGISTROS_HOY.push(registro);
-  enviarSiHayWebhook(registro, state.fotos);
-
-  mostrarConfirmacion(registro);
+  mostrarConfirmacion(registro, enviarSiHayWebhook(registro, state.fotos));
 }
 
-function mostrarConfirmacion(registro){
+function mostrarConfirmacion(registro, envioPromesa){
   const f = document.getElementById('controlForm');
+  const estadoId = 'estadoEnvio_' + Date.now();
   f.innerHTML = `
     <div class="card confirm-screen">
       <div class="confirm-check">✓</div>
       <h2>Registro guardado</h2>
       <p>${escapeHtml(registro.nombre)} · ${registro.tipo} · ${registro.hora}</p>
+      <p id="${estadoId}" style="font-size:12.5px;color:var(--text-dim);">${POWER_AUTOMATE_WEBHOOK_URL ? 'Enviando a Excel…' : 'Guardado solo en este dispositivo (repositorio central no configurado aún).'}</p>
       <button type="button" id="btnNuevo">Hacer otro registro</button>
     </div>`;
   document.getElementById('btnNuevo').addEventListener('click', ()=>{
@@ -566,20 +566,26 @@ function mostrarConfirmacion(registro){
     // el nombre se conserva por si el mismo empleado registra varios movimientos seguidos
     render();
   });
+  if(envioPromesa){
+    envioPromesa.then(ok=>{
+      const el = document.getElementById(estadoId);
+      if(!el) return; // el empleado ya avanzó a otro registro
+      if(ok){ el.textContent = '✓ Guardado en el Excel de SIA ONLINE'; el.style.color = 'var(--green)'; }
+      else { el.textContent = 'No se pudo enviar al repositorio central. Quedó guardado en este dispositivo — expórtalo desde "Registros de hoy".'; el.style.color = 'var(--amber)'; }
+    });
+  }
 }
 
-/* Punto de integración opcional: si más adelante se conecta un flujo de Power Automate
-   (disparador HTTP) que escriba en la lista de SharePoint "Control de Personal - Sede Yopal",
-   basta con pegar la URL del flujo aquí abajo. Mientras esté vacío, el registro solo se
-   guarda en esta sesión del navegador. */
-const POWER_AUTOMATE_WEBHOOK_URL = '';
+/* Punto de integración: flujo de Power Automate (disparador HTTP) que escribe cada
+   registro en la tabla RegistrosPersonal del Excel consolidado en SharePoint. */
+const POWER_AUTOMATE_WEBHOOK_URL = 'https://default2b7b8183352f49e088d17aecc84922.fb.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/21/workflows/159d967bfb4045e38e7ee61b7d3fbc5e/triggers/manual/paths/invoke?api-version=1';
 function enviarSiHayWebhook(registro, fotos){
-  if(!POWER_AUTOMATE_WEBHOOK_URL) return;
-  fetch(POWER_AUTOMATE_WEBHOOK_URL, {
+  if(!POWER_AUTOMATE_WEBHOOK_URL) return null;
+  return fetch(POWER_AUTOMATE_WEBHOOK_URL, {
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ ...registro, fotoUniforme: fotos.uniforme, fotoBotas: fotos.botas })
-  }).catch(()=>{ /* si falla el envío, el registro ya quedó guardado localmente */ });
+  }).then(res => res.ok).catch(()=> false);
 }
 
 /* =========================================================

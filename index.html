@@ -472,12 +472,15 @@ function cerrarCamara(){
 }
 document.getElementById('camClose').addEventListener('click', cerrarCamara);
 
+const FOTO_MAX_ANCHO = 480; // px — mantiene el Base64 liviano para que quepa en el correo de EmailJS
 document.getElementById('camShutter').addEventListener('click', ()=>{
-  const w = camVideo.videoWidth, h = camVideo.videoHeight;
-  if(!w || !h) return;
+  const vw = camVideo.videoWidth, vh = camVideo.videoHeight;
+  if(!vw || !vh) return;
+  const escala = Math.min(1, FOTO_MAX_ANCHO / vw);
+  const w = Math.round(vw * escala), h = Math.round(vh * escala);
   camCanvas.width = w; camCanvas.height = h;
   camCanvas.getContext('2d').drawImage(camVideo, 0, 0, w, h);
-  capturaPendiente = camCanvas.toDataURL('image/jpeg', 0.85);
+  capturaPendiente = camCanvas.toDataURL('image/jpeg', 0.5);
   camVideo.classList.add('hidden');
   camShootBar.classList.add('hidden');
   camConfirmBar.classList.remove('hidden');
@@ -600,7 +603,9 @@ function enviarSiHayWebhook(registro, fotos){
     observacion: limpio(registro.observacion),
     novedades: limpio(registro.novedades),
     tieneFotoUniforme: registro.tieneFotoUniforme ? 'Si' : 'No',
-    tieneFotoBotas: registro.tieneFotoBotas ? 'Si' : 'No'
+    tieneFotoBotas: registro.tieneFotoBotas ? 'Si' : 'No',
+    fotoUniformeBase64: fotos.uniforme || '',
+    fotoBotasBase64: fotos.botas || ''
   }).then(()=> true).catch(err=>{
     const detalle = (err && (err.text || err.message)) ? (err.status ? (err.status+': '+ (err.text||err.message)) : (err.text||err.message)) : JSON.stringify(err);
     return detalle || 'error desconocido';

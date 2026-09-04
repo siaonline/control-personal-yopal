@@ -588,16 +588,17 @@ if(window.emailjs) emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 function enviarSiHayWebhook(registro, fotos){
   if(!window.emailjs) return Promise.resolve('la librería de EmailJS no cargó en este navegador');
   if(!EMAILJS_SERVICE_ID) return null;
+  const limpio = s => (s||'').replace(/["'\r\n]/g, ' ').trim(); // evita romper el JSON del correo
   return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-    sede: registro.sede,
-    nombre: registro.nombre,
-    tipo: registro.tipo,
-    hora: registro.hora,
-    fecha: registro.fecha,
-    uniforme: registro.uniforme || '',
-    epp: registro.epp || '',
-    observacion: registro.observacion || '',
-    novedades: registro.novedades || '',
+    sede: limpio(registro.sede),
+    nombre: limpio(registro.nombre),
+    tipo: limpio(registro.tipo),
+    hora: limpio(registro.hora),
+    fecha: limpio(registro.fecha),
+    uniforme: limpio(registro.uniforme),
+    epp: limpio(registro.epp),
+    observacion: limpio(registro.observacion),
+    novedades: limpio(registro.novedades),
     tieneFotoUniforme: registro.tieneFotoUniforme ? 'Si' : 'No',
     tieneFotoBotas: registro.tieneFotoBotas ? 'Si' : 'No'
   }).then(()=> true).catch(err=>{

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Control de Personal · Sede Yopal</title>
+<style>
+  :root{
+    --rojo: #E51A1A;
+    --rojo-oscuro: #A81212;
+    --tinta: #1C1C1C;
+    --gris: #6B6B6B;
+    --gris-claro: #EDEDED;
+    --fondo: #F7F7F7;
+    --blanco: #FFFFFF;
+    --verde: #1F8A3B;
+    --radio: 10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--fondo);
+    color: var(--tinta);
+    padding-bottom: 40px;
+  }
+  header{
+    background: var(--rojo);
+    color: var(--blanco);
+    padding: 18px 20px 22px;
+  }
+  header .marca{
+    font-size: 13px;
+    letter-spacing: 0.4px;
+    opacity: 0.9;
+    margin-bottom: 2px;
+  }
+  header h1{
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  header .sede{
+    font-size: 13px;
+    opacity: 0.9;
+    margin-top: 4px;
+  }
+  main{
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  .tarjeta{
+    background: var(--blanco);
+    border-radius: var(--radio);
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  label.etiqueta{
+    display:block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--tinta);
+  }
+  input[type="text"], textarea{
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #D8D8D8;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    background: var(--blanco);
+  }
+  textarea{ min-height: 80px; resize: vertical; }
+  input[type="text"]:focus, textarea:focus{
+    outline: 2px solid var(--rojo);
+    outline-offset: 1px;
+    border-color: var(--rojo);
+  }
+
+  .grupo-tipo{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .opcion-tipo{
+    position: relative;
+  }
+  .opcion-tipo input{
+    position:absolute;
+    opacity:0;
+    width:100%;
+    height:100%;
+    margin:0;
+    cursor:pointer;
+  }
+  .opcion-tipo span{
+    display:block;
+    text-align:center;
+    padding: 14px 8px;
+    border: 1.5px solid #D8D8D8;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--gris);
+    line-height:1.25;
+  }
+  .opcion-tipo input:checked + span{
+    border-color: var(--rojo);
+    background: #FDEDED;
+    color: var(--rojo-oscuro);
+  }
+
+  .hora-auto{
+    display:flex;
+    align-items:baseline;
+    gap: 10px;
+    background: var(--gris-claro);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .hora-auto .valor{
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .hora-auto .fecha{
+    font-size: 13px;
+    color: var(--gris);
+  }
+
+  .si-no{
+    display:flex;
+    gap: 10px;
+  }
+  .si-no label{
+    flex:1;
+    position:relative;
+  }
+  .si-no input{
+    position:absolute;
+    opacity:0;
+    width:100%;
+    height:100%;
+    margin:0;
+    cursor:pointer;
+  }
+  .si-no span{
+    display:block;
+    text-align:center;
+    padding: 11px;
+    border: 1.5px solid #D8D8D8;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--gris);
+  }
+  .si-no input:checked + span{
+    border-color: var(--rojo);
+    background: #FDEDED;
+    color: var(--rojo-oscuro);
+  }
+
+  .foto-bloque{ margin-top: 6px; }
+  .foto-bloque + .foto-bloque{ margin-top: 16px; }
+  .foto-caja{
+    border: 1.5px dashed #C9C9C9;
+    border-radius: 10px;
+    padding: 14px;
+    text-align:center;
+    background: #FAFAFA;
+  }
+  .foto-caja.lista{
+    border-style: solid;
+    border-color: var(--verde);
+    background: #F0FAF2;
+    padding: 8px;
+  }
+  .foto-caja img{
+    max-width:100%;
+    max-height: 220px;
+    border-radius: 6px;
+    display:block;
+    margin: 0 auto 8px;
+  }
+  .boton-camara{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background: var(--tinta);
+    color: var(--blanco);
+    border:none;
+    border-radius: 8px;
+    padding: 11px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor:pointer;
+  }
+  .boton-camara.retomar{
+    background: transparent;
+    color: var(--gris);
+    border: 1px solid #D8D8D8;
+  }
+  input[type="file"]{ display:none; }
+
+  .estado-foto{
+    font-size: 13px;
+    color: var(--gris);
+    margin-top: 6px;
+  }
+  .estado-foto.ok{ color: var(--verde); font-weight:600; }
+
+  .btn-enviar{
+    width:100%;
+    padding: 16px;
+    background: var(--rojo);
+    color: var(--blanco);
+    border:none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor:pointer;
+    margin-top: 4px;
+  }
+  .btn-enviar:disabled{
+    background: #E7A7A7;
+    cursor:not-allowed;
+  }
+  .btn-enviar:active:not(:disabled){ background: var(--rojo-oscuro); }
+
+  .oculto{ display:none !important; }
+
+  .aviso{
+    font-size: 13px;
+    color: var(--gris);
+    padding: 0 4px;
+    margin: 10px 0 0;
+  }
+
+  #pantallaExito{
+    text-align:center;
+    padding: 60px 24px;
+  }
+  #pantallaExito .marca-check{
+    width:64px;height:64px;border-radius:50%;
+    background: var(--verde);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:32px;
+    margin: 0 auto 18px;
+  }
+  #pantallaExito h2{ margin: 0 0 6px; font-size:19px; }
+  #pantallaExito p{ color: var(--gris); font-size:14px; margin: 0 0 24px;}
+  #pantallaExito button{
+    background: var(--tinta);
+    color:#fff;
+    border:none;
+    padding: 12px 22px;
+    border-radius:8px;
+    font-weight:600;
+    font-size:14px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="marca">SIA · Servicios Integrados Automotriz</div>
+  <h1>Control de Personal</h1>
+  <div class="sede">Sede Yopal</div>
+</header>
+
+<main id="vistaFormulario">
+
+  <div class="tarjeta">
+    <label class="etiqueta" for="nombre">Nombre completo</label>
+    <input type="text" id="nombre" placeholder="Escribe tu nombre completo" autocomplete="off">
+  </div>
+
+  <div class="tarjeta">
+    <label class="etiqueta">Tipo de registro</label>
+    <div class="grupo-tipo" id="grupoTipo">
+      <label class="opcion-tipo">
+        <input type="radio" name="tipo" value="Ingreso">
+        <span>Ingreso</span>
+      </label>
+      <label class="opcion-tipo">
+        <input type="radio" name="tipo" value="Salida a almuerzo">
+        <span>Salida a<br>almuerzo</span>
+      </label>
+      <label class="opcion-tipo">
+        <input type="radio" name="tipo" value="Regreso de almuerzo">
+        <span>Regreso de<br>almuerzo</span>
+      </label>
+      <label class="opcion-tipo">
+        <input type="radio" name="tipo" value="Salida definitiva">
+        <span>Salida<br>definitiva</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Hora automática: aparece para cualquier tipo seleccionado -->
+  <div class="tarjeta oculto" id="tarjetaHora">
+    <label class="etiqueta" id="etiquetaHora">Hora</label>
+    <div class="hora-auto">
+      <div class="valor" id="horaValor">--:--:--</div>
+      <div class="fecha" id="fechaValor"></div>
+    </div>
+  </div>
+
+  <!-- Campos solo para Ingreso -->
+  <div class="tarjeta oculto" id="bloqueIngreso">
+    <label class="etiqueta">Uniforme completo</label>
+    <div class="si-no">
+      <label><input type="radio" name="uniforme" value="Si"><span>Sí</span></label>
+      <label><input type="radio" name="uniforme" value="No"><span>No</span></label>
+    </div>
+
+    <label class="etiqueta" style="margin-top:16px;">EPP completo</label>
+    <div class="si-no">
+      <label><input type="radio" name="epp" value="Si"><span>Sí</span></label>
+      <label><input type="radio" name="epp" value="No"><span>No</span></label>
+    </div>
+
+    <label class="etiqueta" style="margin-top:16px;">Observación</label>
+    <textarea id="observacion" placeholder="Escribe una observación (opcional)"></textarea>
+  </div>
+
+  <!-- Fotos: solo para Ingreso -->
+  <div class="tarjeta oculto" id="bloqueFotos">
+    <label class="etiqueta">Evidencia fotográfica</label>
+
+    <div class="foto-bloque">
+      <div class="foto-caja" id="cajaUniforme">
+        <div class="boton-camara" onclick="document.getElementById('inputUniforme').click()">📷 Tomar foto del uniforme</div>
+        <input type="file" id="inputUniforme" accept="image/*" capture="environment">
+      </div>
+      <div class="estado-foto" id="estadoUniforme">Sin foto</div>
+    </div>
+
+    <div class="foto-bloque">
+      <div class="foto-caja" id="cajaBotas">
+        <div class="boton-camara" onclick="document.getElementById('inputBotas').click()">📷 Tomar foto de las botas</div>
+        <input type="file" id="inputBotas" accept="image/*" capture="environment">
+      </div>
+      <div class="estado-foto" id="estadoBotas">Sin foto</div>
+    </div>
+
+    <p class="aviso">La cámara se abre directamente; no se puede seleccionar una foto de la galería.</p>
+  </div>
+
+  <!-- Novedades: solo para Salida definitiva -->
+  <div class="tarjeta oculto" id="bloqueNovedades">
+    <label class="etiqueta">Novedades del día</label>
+    <textarea id="novedades" placeholder="Escribe las novedades del día (opcional)"></textarea>
+  </div>
+
+  <button class="btn-enviar oculto" id="btnEnviar" disabled onclick="enviarRegistro()">Guardar registro</button>
+  <p class="aviso oculto" id="avisoIncompleto">Completa el nombre y los campos obligatorios para poder guardar.</p>
+
+</main>
+
+<main id="pantallaExito" class="oculto">
+  <div class="marca-check">✓</div>
+  <h2>Registro guardado</h2>
+  <p id="resumenExito">Tu registro se envió correctamente.</p>
+  <button onclick="reiniciarFormulario()">Registrar otro</button>
+</main>
+
+<script>
+/* =====================================================================
+   CONFIGURACIÓN
+   Cambia MODO a "produccion" solo cuando esta página quede alojada
+   DENTRO del sitio de SharePoint "SIA ONLINE" (mismo dominio), para que
+   pueda usar la sesión ya iniciada y llamar el API REST de SharePoint.
+   Mientras la pruebas en GitHub Pages, déjala en "prueba".
+   ===================================================================== */
+const CONFIG = {
+  modo: "prueba", // "prueba" | "produccion"
+  sitio: "https://TUEMPRESA.sharepoint.com/sites/SIAONLINE", // URL del sitio SIA ONLINE
+  lista: "Control de Personal - Sede Yopal",                  // nombre exacto de la lista
+  sede: "Yopal"
+};
+
+let fotoUniformeBase64 = null;
+let fotoBotasBase64 = null;
+
+// --- Reloj / hora automática por tipo de registro ---
+const etiquetasHora = {
+  "Ingreso": "Hora de ingreso",
+  "Salida a almuerzo": "Hora de salida a almuerzo",
+  "Regreso de almuerzo": "Hora de regreso de almuerzo",
+  "Salida definitiva": "Hora de salida definitiva"
+};
+
+function actualizarReloj(){
+  const ahora = new Date();
+  document.getElementById("horaValor").textContent =
+    ahora.toLocaleTimeString("es-CO", {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+  document.getElementById("fechaValor").textContent =
+    ahora.toLocaleDateString("es-CO", {day:"2-digit", month:"2-digit", year:"numeric"});
+}
+setInterval(actualizarReloj, 1000);
+actualizarReloj();
+
+document.querySelectorAll('input[name="tipo"]').forEach(r => {
+  r.addEventListener("change", () => {
+    const tipo = r.value;
+    document.getElementById("tarjetaHora").classList.remove("oculto");
+    document.getElementById("etiquetaHora").textContent = etiquetasHora[tipo];
+
+    document.getElementById("bloqueIngreso").classList.toggle("oculto", tipo !== "Ingreso");
+    document.getElementById("bloqueFotos").classList.toggle("oculto", tipo !== "Ingreso");
+    document.getElementById("bloqueNovedades").classList.toggle("oculto", tipo !== "Salida definitiva");
+
+    document.getElementById("btnEnviar").classList.remove("oculto");
+    validarFormulario();
+  });
+});
+
+// --- Captura de fotos (solo cámara, sin acceso a galería) ---
+function manejarFoto(inputId, cajaId, estadoId, destino){
+  const input = document.getElementById(inputId);
+  input.addEventListener("change", (e) => {
+    const archivo = e.target.files[0];
+    if(!archivo) return;
+    const lector = new FileReader();
+    lector.onload = function(ev){
+      const base64 = ev.target.result;
+      if(destino === "uniforme") fotoUniformeBase64 = base64;
+      if(destino === "botas") fotoBotasBase64 = base64;
+
+      const caja = document.getElementById(cajaId);
+      caja.classList.add("lista");
+      caja.innerHTML = `
+        <img src="${base64}" alt="Foto capturada">
+        <div class="boton-camara retomar" onclick="document.getElementById('${inputId}').click()">Repetir foto</div>
+        <input type="file" id="${inputId}" accept="image/*" capture="environment">
+      `;
+      // Reasignar el listener al nuevo input (el innerHTML anterior se reemplazó)
+      manejarFoto(inputId, cajaId, estadoId, destino);
+
+      document.getElementById(estadoId).textContent = "Foto capturada ✓";
+      document.getElementById(estadoId).classList.add("ok");
+      validarFormulario();
+    };
+    lector.readAsDataURL(archivo);
+  });
+}
+manejarFoto("inputUniforme", "cajaUniforme", "estadoUniforme", "uniforme");
+manejarFoto("inputBotas", "cajaBotas", "estadoBotas", "botas");
+
+// --- Validación mínima antes de habilitar "Guardar" ---
+function tipoSeleccionado(){
+  const r = document.querySelector('input[name="tipo"]:checked');
+  return r ? r.value : null;
+}
+
+function validarFormulario(){
+  const nombre = document.getElementById("nombre").value.trim();
+  const tipo = tipoSeleccionado();
+  let valido = !!nombre && !!tipo;
+
+  if(tipo === "Ingreso"){
+    valido = valido && !!fotoUniformeBase64 && !!fotoBotasBase64;
+  }
+
+  document.getElementById("btnEnviar").disabled = !valido;
+  document.getElementById("avisoIncompleto").classList.toggle("oculto", valido);
+}
+document.getElementById("nombre").addEventListener("input", validarFormulario);
+document.querySelectorAll('input[name="uniforme"], input[name="epp"]').forEach(el =>
+  el.addEventListener("change", validarFormulario)
+);
+
+// --- Armar el registro ---
+function construirRegistro(){
+  const tipo = tipoSeleccionado();
+  return {
+    sede: CONFIG.sede,
+    persona: document.getElementById("nombre").value.trim(),
+    tipo: tipo,
+    hora: new Date().toISOString(),
+    uniforme: tipo === "Ingreso" ? (document.querySelector('input[name="uniforme"]:checked')?.value || "") : "",
+    epp: tipo === "Ingreso" ? (document.querySelector('input[name="epp"]:checked')?.value || "") : "",
+    observacion: tipo === "Ingreso" ? document.getElementById("observacion").value.trim() : "",
+    novedades: tipo === "Salida definitiva" ? document.getElementById("novedades").value.trim() : "",
+    fotoUniforme: tipo === "Ingreso" ? fotoUniformeBase64 : null,
+    fotoBotas: tipo === "Ingreso" ? fotoBotasBase64 : null
+  };
+}
+
+async function enviarRegistro(){
+  const boton = document.getElementById("btnEnviar");
+  boton.disabled = true;
+  boton.textContent = "Guardando...";
+
+  const registro = construirRegistro();
+
+  try{
+    if(CONFIG.modo === "produccion"){
+      await guardarEnSharePoint(registro);
+    } else {
+      // Modo de prueba: no hay backend todavía.
+      // Esto te deja validar el flujo completo (campos + fotos) en GitHub Pages.
+      console.log("Registro (modo prueba):", registro);
+      await new Promise(res => setTimeout(res, 600));
+    }
+    mostrarExito(registro);
+  } catch(err){
+    console.error(err);
+    alert("No se pudo guardar el registro. Intenta de nuevo.\n" + err.message);
+    boton.disabled = false;
+    boton.textContent = "Guardar registro";
+  }
+}
+
+function mostrarExito(registro){
+  document.getElementById("vistaFormulario").classList.add("oculto");
+  document.getElementById("resumenExito").textContent =
+    `${registro.tipo} registrado para ${registro.persona}.`;
+  document.getElementById("pantallaExito").classList.remove("oculto");
+}
+
+function reiniciarFormulario(){
+  document.getElementById("pantallaExito").classList.add("oculto");
+  document.getElementById("vistaFormulario").classList.remove("oculto");
+  document.getElementById("nombre").value = "";
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.getElementById("observacion").value = "";
+  document.getElementById("novedades").value = "";
+  fotoUniformeBase64 = null;
+  fotoBotasBase64 = null;
+  ["tarjetaHora","bloqueIngreso","bloqueFotos","bloqueNovedades","btnEnviar"].forEach(id =>
+    document.getElementById(id).classList.add("oculto")
+  );
+  document.getElementById("btnEnviar").disabled = true;
+  document.getElementById("btnEnviar").textContent = "Guardar registro";
+  // Restaurar cajas de foto
+  document.getElementById("cajaUniforme").outerHTML = `
+    <div class="foto-caja" id="cajaUniforme">
+      <div class="boton-camara" onclick="document.getElementById('inputUniforme').click()">📷 Tomar foto del uniforme</div>
+      <input type="file" id="inputUniforme" accept="image/*" capture="environment">
+    </div>`;
+  document.getElementById("cajaBotas").outerHTML = `
+    <div class="foto-caja" id="cajaBotas">
+      <div class="boton-camara" onclick="document.getElementById('inputBotas').click()">📷 Tomar foto de las botas</div>
+      <input type="file" id="inputBotas" accept="image/*" capture="environment">
+    </div>`;
+  document.getElementById("estadoUniforme").textContent = "Sin foto";
+  document.getElementById("estadoUniforme").classList.remove("ok");
+  document.getElementById("estadoBotas").textContent = "Sin foto";
+  document.getElementById("estadoBotas").classList.remove("ok");
+  manejarFoto("inputUniforme", "cajaUniforme", "estadoUniforme", "uniforme");
+  manejarFoto("inputBotas", "cajaBotas", "estadoBotas", "botas");
+}
+
+/* =====================================================================
+   INTEGRACIÓN CON SHAREPOINT (modo "produccion")
+   Solo funciona si este archivo queda alojado DENTRO del mismo sitio
+   de SharePoint (mismo dominio), porque necesita la cookie de sesión
+   del usuario que ya inició sesión y un "form digest" válido.
+   ===================================================================== */
+async function obtenerDigest(){
+  const resp = await fetch(`${CONFIG.sitio}/_api/contextinfo`, {
+    method: "POST",
+    headers: { "Accept": "application/json;odata=verbose" },
+    credentials: "same-origin"
+  });
+  const data = await resp.json();
+  return data.d.GetContextWebInformation.FormDigestValue;
+}
+
+async function guardarEnSharePoint(registro){
+  const digest = await obtenerDigest();
+
+  // 1) Crear el ítem en la lista
+  const cuerpo = {
+    __metadata: { type: "SP.Data.Control_x0020_de_x0020_Personal_x0020__x002d__x0020_Sede_x0020_YopalListItem" },
+    Sede: registro.sede,
+    Tipo_de_registro: registro.tipo,
+    Uniforme_completo: registro.uniforme,
+    EPP_completo: registro.epp,
+    Observacion: registro.observacion,
+    Novedades_del_dia: registro.novedades,
+    Persona_que_registra: registro.persona
+  };
+
+  const respCrear = await fetch(`${CONFIG.sitio}/_api/web/lists/getbytitle('${CONFIG.lista}')/items`, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      "Accept": "application/json;odata=verbose",
+      "Content-Type": "application/json;odata=verbose",
+      "X-RequestDigest": digest
+    },
+    body: JSON.stringify(cuerpo)
+  });
+  if(!respCrear.ok) throw new Error("No se pudo crear el registro en la lista.");
+  const itemCreado = await respCrear.json();
+  const idItem = itemCreado.d.Id;
+
+  // 2) Adjuntar las fotos (si aplica)
+  if(registro.fotoUniforme){
+    await adjuntarFoto(idItem, "uniforme.jpg", registro.fotoUniforme, digest);
+  }
+  if(registro.fotoBotas){
+    await adjuntarFoto(idItem, "botas.jpg", registro.fotoBotas, digest);
+  }
+}
+
+async function adjuntarFoto(idItem, nombreArchivo, base64, digest){
+  const binario = base64DataUrlABinario(base64);
+  const url = `${CONFIG.sitio}/_api/web/lists/getbytitle('${CONFIG.lista}')/items(${idItem})/AttachmentFiles/add(FileName='${nombreArchivo}')`;
+  const resp = await fetch(url, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: {
+      "Accept": "application/json;odata=verbose",
+      "X-RequestDigest": digest
+    },
+    body: binario
+  });
+  if(!resp.ok) throw new Error(`No se pudo adjuntar ${nombreArchivo}.`);
+}
+
+function base64DataUrlABinario(dataUrl){
+  const base64 = dataUrl.split(",")[1];
+  const binStr = atob(base64);
+  const bytes = new Uint8Array(binStr.length);
+  for(let i=0; i<binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+  return bytes.buffer;
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Control de Personal - Sede Yopal</title>
+<style>
+  :root{
+    --sia-red:#E51A1A;
+    --sia-red-dark:#B31414;
+    --bg:#f2f3f5;
+    --card:#ffffff;
+    --text:#1c1c1c;
+    --muted:#6b6b6b;
+    --border:#e0e0e0;
+    --ok:#1f9d55;
+    --warn:#c53030;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    padding-bottom:40px;
+  }
+  header{
+    background:var(--sia-red);
+    color:#fff;
+    padding:14px 16px;
+    padding-top:calc(14px + env(safe-area-inset-top));
+    text-align:center;
+    position:sticky;
+    top:0;
+    z-index:10;
+    box-shadow:0 2px 6px rgba(0,0,0,0.15);
+  }
+  header img.logo{
+    height:46px;
+    display:block;
+    margin:0 auto 6px;
+  }
+  header h1{
+    margin:0;
+    font-size:17px;
+    letter-spacing:0.5px;
+    font-weight:700;
+  }
+  header p{
+    margin:4px 0 0;
+    font-size:12px;
+    opacity:0.9;
+  }
+  .container{
+    max-width:520px;
+    margin:16px auto;
+    padding:0 14px;
+  }
+  .card{
+    background:var(--card);
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:14px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+  }
+  label.field-label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:6px;
+    color:var(--text);
+  }
+  input[type="text"], textarea{
+    width:100%;
+    padding:11px 12px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-size:15px;
+    font-family:inherit;
+    background:#fafafa;
+  }
+  textarea{
+    min-height:80px;
+    resize:vertical;
+  }
+  .hint{
+    font-size:11.5px;
+    color:var(--muted);
+    margin-top:4px;
+  }
+  .tipo-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .tipo-btn{
+    border:2px solid var(--border);
+    background:#fff;
+    border-radius:10px;
+    padding:14px 8px;
+    font-size:13.5px;
+    font-weight:600;
+    text-align:center;
+    cursor:pointer;
+    color:var(--text);
+    transition:all .15s;
+  }
+  .tipo-btn.active{
+    border-color:var(--sia-red);
+    background:#fdecec;
+    color:var(--sia-red-dark);
+  }
+  .hora-box{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:#f6f6f6;
+    border-radius:8px;
+    padding:12px 14px;
+    margin-bottom:14px;
+  }
+  .hora-box .valor{
+    font-size:16px;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+  }
+  .si-no{
+    display:flex;
+    gap:10px;
+  }
+  .si-no button{
+    flex:1;
+    padding:12px;
+    border-radius:8px;
+    border:2px solid var(--border);
+    background:#fff;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    color:var(--text);
+  }
+  .si-no button.sel-si.active{
+    border-color:var(--ok);
+    background:#e9f9ef;
+    color:var(--ok);
+  }
+  .si-no button.sel-no.active{
+    border-color:var(--warn);
+    background:#fdecec;
+    color:var(--warn);
+  }
+  .foto-slot{
+    border:2px dashed var(--border);
+    border-radius:10px;
+    padding:14px;
+    text-align:center;
+    margin-bottom:12px;
+  }
+  .foto-slot img{
+    width:100%;
+    max-height:220px;
+    object-fit:cover;
+    border-radius:8px;
+    margin-bottom:8px;
+  }
+  .btn{
+    display:inline-block;
+    width:100%;
+    padding:13px;
+    border-radius:9px;
+    border:none;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .btn-primary{
+    background:var(--sia-red);
+    color:#fff;
+  }
+  .btn-secondary{
+    background:#fff;
+    color:var(--sia-red);
+    border:2px solid var(--sia-red);
+  }
+  .btn:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+  }
+  .foto-check{
+    font-size:12.5px;
+    font-weight:600;
+    margin-top:2px;
+  }
+  .foto-check.pendiente{ color:var(--warn); }
+  .foto-check.lista{ color:var(--ok); }
+
+  /* Modal de camara */
+  .cam-overlay{
+    position:fixed;
+    inset:0;
+    background:#000;
+    z-index:100;
+    display:none;
+    flex-direction:column;
+  }
+  .cam-overlay.open{ display:flex; }
+  .cam-overlay video, .cam-overlay canvas, .cam-overlay img.preview{
+    flex:1;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  .cam-topbar{
+    position:absolute;
+    top:0; left:0; right:0;
+    padding:14px 16px;
+    color:#fff;
+    font-size:13px;
+    font-weight:600;
+    background:linear-gradient(rgba(0,0,0,0.55), transparent);
+    z-index:2;
+  }
+  .cam-controls{
+    position:absolute;
+    bottom:0; left:0; right:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:24px;
+    padding:22px 16px 30px;
+    background:linear-gradient(transparent, rgba(0,0,0,0.6));
+    z-index:2;
+  }
+  .cam-shoot{
+    width:70px;height:70px;border-radius:50%;
+    background:#fff;
+    border:5px solid rgba(255,255,255,0.4);
+  }
+  .cam-cancel, .cam-retake, .cam-accept{
+    color:#fff;
+    background:rgba(255,255,255,0.15);
+    border:1px solid rgba(255,255,255,0.5);
+    padding:10px 16px;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:600;
+  }
+  .cam-accept{
+    background:var(--sia-red);
+    border-color:var(--sia-red);
+  }
+  .cam-error{
+    color:#fff;
+    padding:30px;
+    text-align:center;
+    font-size:14px;
+  }
+  .status-msg{
+    text-align:center;
+    font-size:13px;
+    margin-top:10px;
+    min-height:18px;
+  }
+  .status-msg.ok{ color:var(--ok); font-weight:700; }
+  .status-msg.err{ color:var(--warn); font-weight:700; }
+  .hidden{ display:none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <img class="logo" alt="SIA - Servicios Integrados Automotriz" src="data:image/png;base64,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">
+  <h1>CONTROL DE PERSONAL – SEDE YOPAL</h1>
+  <p>Registro de ingreso, salida y novedades</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <label class="field-label" for="nombre">Nombre completo</label>
+    <input type="text" id="nombre" placeholder="Escribe tu nombre completo" autocomplete="off">
+  </div>
+
+  <div class="card">
+    <label class="field-label">Tipo de registro</label>
+    <div class="tipo-grid" id="tipoGrid">
+      <div class="tipo-btn" data-tipo="Ingreso">Ingreso</div>
+      <div class="tipo-btn" data-tipo="Salida a almuerzo">Salida a almuerzo</div>
+      <div class="tipo-btn" data-tipo="Regreso de almuerzo">Regreso de almuerzo</div>
+      <div class="tipo-btn" data-tipo="Salida definitiva">Salida definitiva</div>
+    </div>
+  </div>
+
+  <!-- INGRESO -->
+  <div class="card hidden" id="seccionIngreso">
+    <div class="hora-box">
+      <span>Hora de ingreso</span>
+      <span class="valor" id="horaIngreso">--:--:--</span>
+    </div>
+
+    <label class="field-label">Uniforme completo</label>
+    <div class="si-no" id="uniformeSiNo">
+      <button type="button" class="sel-si" data-campo="uniforme" data-val="Si">Sí</button>
+      <button type="button" class="sel-no" data-campo="uniforme" data-val="No">No</button>
+    </div>
+
+    <label class="field-label" style="margin-top:14px;">EPP completo</label>
+    <div class="si-no" id="eppSiNo">
+      <button type="button" class="sel-si" data-campo="epp" data-val="Si">Sí</button>
+      <button type="button" class="sel-no" data-campo="epp" data-val="No">No</button>
+    </div>
+
+    <label class="field-label" style="margin-top:14px;" for="observacion">Observación</label>
+    <textarea id="observacion" placeholder="Observaciones (opcional)"></textarea>
+
+    <label class="field-label" style="margin-top:14px;">Evidencia fotográfica</label>
+
+    <div class="foto-slot">
+      <div id="previewUniforme"></div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Foto del uniforme</div>
+      <button type="button" class="btn btn-secondary" onclick="abrirCamara('uniforme')">📷 Tomar foto del uniforme</button>
+      <div class="foto-check pendiente" id="checkUniforme">Pendiente</div>
+    </div>
+
+    <div class="foto-slot">
+      <div id="previewBotas"></div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Foto de las botas</div>
+      <button type="button" class="btn btn-secondary" onclick="abrirCamara('botas')">📷 Tomar foto de las botas</button>
+      <div class="foto-check pendiente" id="checkBotas">Pendiente</div>
+    </div>
+  </div>
+
+  <!-- SALIDA A ALMUERZO -->
+  <div class="card hidden" id="seccionAlmuerzo">
+    <div class="hora-box">
+      <span>Hora de salida a almuerzo</span>
+      <span class="valor" id="horaAlmuerzo">--:--:--</span>
+    </div>
+  </div>
+
+  <!-- REGRESO DE ALMUERZO -->
+  <div class="card hidden" id="seccionRegreso">
+    <div class="hora-box">
+      <span>Hora de regreso de almuerzo</span>
+      <span class="valor" id="horaRegreso">--:--:--</span>
+    </div>
+  </div>
+
+  <!-- SALIDA DEFINITIVA -->
+  <div class="card hidden" id="seccionSalida">
+    <div class="hora-box">
+      <span>Hora de salida</span>
+      <span class="valor" id="horaSalida">--:--:--</span>
+    </div>
+    <label class="field-label" for="novedades">Novedades del día</label>
+    <textarea id="novedades" placeholder="Novedades (opcional)"></textarea>
+  </div>
+
+  <div class="card">
+    <button type="button" class="btn btn-primary" id="btnGuardar" disabled onclick="guardarRegistro()">Guardar registro</button>
+    <div class="status-msg" id="statusMsg"></div>
+  </div>
+
+</div>
+
+<!-- MODAL CAMARA -->
+<div class="cam-overlay" id="camOverlay">
+  <div class="cam-topbar" id="camTitulo">Cámara</div>
+  <video id="camVideo" autoplay playsinline webkit-playsinline muted></video>
+  <canvas id="camCanvas" class="hidden"></canvas>
+  <img id="camPreviewImg" class="preview hidden">
+  <div class="cam-controls" id="camControlsShoot">
+    <button type="button" class="cam-cancel" onclick="cerrarCamara()">Cancelar</button>
+    <button type="button" class="cam-shoot" onclick="capturarFoto()" aria-label="Capturar"></button>
+    <span style="width:70px;"></span>
+  </div>
+  <div class="cam-controls hidden" id="camControlsConfirm">
+    <button type="button" class="cam-retake" onclick="repetirFoto()">Repetir</button>
+    <button type="button" class="cam-accept" onclick="aceptarFoto()">Usar esta foto</button>
+  </div>
+</div>
+
+<script>
+/*
+  ================================================================
+  IMPORTANTE - CAPTURA DE FOTO SOLO POR CAMARA (SIN GALERIA)
+  ================================================================
+  Este formulario NO usa <input type="file"> en ningun punto.
+  Las fotos se obtienen unicamente a traves de getUserMedia(),
+  es decir, transmisión en vivo de la camara del dispositivo,
+  capturada en un <canvas> y convertida a imagen (dataURL).
+  Esto hace imposible que el empleado seleccione una foto ya
+  existente en la galeria, porque en ningun momento se abre un
+  selector de archivos del sistema operativo.
+*/
+
+let tipoSeleccionado = null;
+const datos = {
+  uniforme: null,
+  epp: null,
+  fotoUniformeDataUrl: null,
+  fotoBotasDataUrl: null
+};
+
+let camStream = null;
+let camObjetivo = null; // 'uniforme' | 'botas'
+let ultimaCapturaDataUrl = null;
+
+function horaActualTexto(){
+  const d = new Date();
+  return d.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+
+// ---------- Selección de tipo de registro ----------
+document.getElementById('tipoGrid').addEventListener('click', (e) => {
+  const btn = e.target.closest('.tipo-btn');
+  if(!btn) return;
+  tipoSeleccionado = btn.dataset.tipo;
+
+  document.querySelectorAll('.tipo-btn').forEach(b => b.classList.toggle('active', b === btn));
+
+  document.getElementById('seccionIngreso').classList.toggle('hidden', tipoSeleccionado !== 'Ingreso');
+  document.getElementById('seccionAlmuerzo').classList.toggle('hidden', tipoSeleccionado !== 'Salida a almuerzo');
+  document.getElementById('seccionRegreso').classList.toggle('hidden', tipoSeleccionado !== 'Regreso de almuerzo');
+  document.getElementById('seccionSalida').classList.toggle('hidden', tipoSeleccionado !== 'Salida definitiva');
+
+  if(tipoSeleccionado === 'Ingreso') document.getElementById('horaIngreso').textContent = horaActualTexto();
+  if(tipoSeleccionado === 'Salida a almuerzo') document.getElementById('horaAlmuerzo').textContent = horaActualTexto();
+  if(tipoSeleccionado === 'Regreso de almuerzo') document.getElementById('horaRegreso').textContent = horaActualTexto();
+  if(tipoSeleccionado === 'Salida definitiva') document.getElementById('horaSalida').textContent = horaActualTexto();
+
+  validarFormulario();
+});
+
+// ---------- Sí / No (uniforme, epp) ----------
+document.querySelectorAll('.si-no').forEach(grupo => {
+  grupo.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const campo = btn.dataset.campo;
+    const val = btn.dataset.val;
+    datos[campo] = val;
+    grupo.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    validarFormulario();
+  });
+});
+
+document.getElementById('nombre').addEventListener('input', validarFormulario);
+
+// ---------- Cámara ----------
+async function abrirCamara(objetivo){
+  camObjetivo = objetivo;
+  const overlay = document.getElementById('camOverlay');
+  const video = document.getElementById('camVideo');
+  const titulo = document.getElementById('camTitulo');
+  titulo.textContent = objetivo === 'uniforme' ? 'Foto del uniforme' : 'Foto de las botas';
+
+  document.getElementById('camControlsShoot').classList.remove('hidden');
+  document.getElementById('camControlsConfirm').classList.add('hidden');
+  video.classList.remove('hidden');
+  document.getElementById('camPreviewImg').classList.add('hidden');
+
+  overlay.classList.add('open');
+
+  try{
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1280 }, height:{ ideal:1280 } },
+      audio:false
+    });
+    video.srcObject = camStream;
+  }catch(err){
+    overlay.innerHTML = '<div class="cam-error">No se pudo acceder a la cámara.<br>Verifica los permisos de cámara del navegador.<br><br><button type="button" class="cam-cancel" onclick="cerrarCamara()">Cerrar</button></div>';
+  }
+}
+
+function detenerStream(){
+  if(camStream){
+    camStream.getTracks().forEach(t => t.stop());
+    camStream = null;
+  }
+}
+
+function cerrarCamara(){
+  detenerStream();
+  document.getElementById('camOverlay').classList.remove('open');
+  // Restaurar estructura del modal por si fue reemplazada por el mensaje de error
+  location.reload();
+}
+
+function capturarFoto(){
+  const video = document.getElementById('camVideo');
+  const canvas = document.getElementById('camCanvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  ultimaCapturaDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+  const previewImg = document.getElementById('camPreviewImg');
+  previewImg.src = ultimaCapturaDataUrl;
+  previewImg.classList.remove('hidden');
+  video.classList.add('hidden');
+
+  document.getElementById('camControlsShoot').classList.add('hidden');
+  document.getElementById('camControlsConfirm').classList.remove('hidden');
+}
+
+function repetirFoto(){
+  ultimaCapturaDataUrl = null;
+  document.getElementById('camPreviewImg').classList.add('hidden');
+  document.getElementById('camVideo').classList.remove('hidden');
+  document.getElementById('camControlsShoot').classList.remove('hidden');
+  document.getElementById('camControlsConfirm').classList.add('hidden');
+}
+
+function aceptarFoto(){
+  if(camObjetivo === 'uniforme'){
+    datos.fotoUniformeDataUrl = ultimaCapturaDataUrl;
+    document.getElementById('previewUniforme').innerHTML = '<img src="'+ultimaCapturaDataUrl+'">';
+    const check = document.getElementById('checkUniforme');
+    check.textContent = 'Foto lista ✔';
+    check.classList.remove('pendiente'); check.classList.add('lista');
+  }else{
+    datos.fotoBotasDataUrl = ultimaCapturaDataUrl;
+    document.getElementById('previewBotas').innerHTML = '<img src="'+ultimaCapturaDataUrl+'">';
+    const check = document.getElementById('checkBotas');
+    check.textContent = 'Foto lista ✔';
+    check.classList.remove('pendiente'); check.classList.add('lista');
+  }
+  detenerStream();
+  document.getElementById('camOverlay').classList.remove('open');
+  validarFormulario();
+}
+
+// ---------- Validación ----------
+function validarFormulario(){
+  const nombreOk = document.getElementById('nombre').value.trim().length > 0;
+  let ok = nombreOk && !!tipoSeleccionado;
+
+  if(tipoSeleccionado === 'Ingreso'){
+    ok = ok && !!datos.uniforme && !!datos.epp && !!datos.fotoUniformeDataUrl && !!datos.fotoBotasDataUrl;
+  }
+
+  document.getElementById('btnGuardar').disabled = !ok;
+  return ok;
+}
+
+// ---------- Guardar ----------
+function guardarRegistro(){
+  if(!validarFormulario()) return;
+
+  const registro = {
+    sede: 'Yopal',
+    persona_que_registra: document.getElementById('nombre').value.trim(),
+    tipo_de_registro: tipoSeleccionado,
+    hora: new Date().toISOString(),
+    uniforme_completo: datos.uniforme || '',
+    epp_completo: datos.epp || '',
+    observacion: document.getElementById('observacion') ? document.getElementById('observacion').value.trim() : '',
+    novedades_del_dia: document.getElementById('novedades') ? document.getElementById('novedades').value.trim() : '',
+    foto_uniforme: datos.fotoUniformeDataUrl,
+    foto_botas: datos.fotoBotasDataUrl
+  };
+
+  // ------------------------------------------------------------
+  // TODO: aquí se conecta con la API REST de SharePoint para
+  // crear el elemento en la lista "Control de Personal - Sede
+  // Yopal" y adjuntar foto_uniforme y foto_botas como attachments.
+  // Por ahora se deja el objeto `registro` listo para enviar.
+  // ------------------------------------------------------------
+  console.log('Registro a enviar:', registro);
+
+  const status = document.getElementById('statusMsg');
+  status.textContent = 'Registro guardado correctamente.';
+  status.className = 'status-msg ok';
+
+  setTimeout(() => location.reload(), 1500);
+}
+</script>
+
+</body>
+</html>
